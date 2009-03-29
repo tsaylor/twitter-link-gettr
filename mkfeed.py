@@ -11,13 +11,17 @@ def hasURLs(text):
     return ( re.search(url, text) != None )
 
 def convertLinks(text):
+    links = [a.group() for a in re.finditer(url,text)]
+    #swap links found in above for actual links
+    for link in links:
+        text = re.sub(link, "<a href='%s' target='_blank'>%s</a>" % (link,link), text)
     return text
 
 def mkFeedItem(status):
    return PyRSS2Gen.RSSItem(
             title = status.user.name,
-            link = convertLinks(status.user.url),
-            description = status.text,
+            link = status.user.url,
+            description = convertLinks(status.text),
 #            guid = PyRSS2Gen.Guid(status.text),
             pubDate = status.created_at #datetime.datetime(2003, 9, 6, 21, 31) # get the right date/time from python-twitter
           )
@@ -36,7 +40,7 @@ def mkFeed(statuses):
 
 api = twitter.Api(username="", password="") # XXX your user/pass
 
-allstatuses = api.GetFriendsTimeline("") #  XXX your username
+allstatuses = api.GetFriendsTimeline("") # XXX your username
 #alltext = [(s.user.name, s.text, s.created_at) for s in statuses]
 
 # get one list of URLs, even if there are multiple URLs in some posts
