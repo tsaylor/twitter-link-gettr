@@ -1,6 +1,5 @@
-import twitter, re, datetime, PyRSS2Gen
+import twitter, re, datetime, PyRSS2Gen, urllib2, settings, sys
 
-file = "/var/www/timsaylor.com/twitterlinkfeed.xml"
 url = unicode(r"(?#Protocol)(?:(?:ht|f)tp(?:s?)\:\/\/|~/|/)?(?#Username:Password)(?:\w+:\w+@)?(?#Subdomains)(?:(?:[-\w]+\.)+(?#TopLevel Domains)(?:com|org|net|gov|mil|biz|info|mobi|name|aero|jobs|museum|travel|[a-z]{2}))(?#Port)(?::[\d]{1,5})?(?#Directories)(?:(?:(?:/(?:[-\w~!$+|.,=]|%[a-f\d]{2})+)+|/)+|\?|#)?(?#Query)(?:(?:\?(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)(?:&(?:[-\w~!$+|.,*:]|%[a-f\d{2}])+=(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)*)*(?#Anchor)(?:#(?:[-\w~!$+|.,*:=]|%[a-f\d]{2})*)?")
 
 def getURLs(text):
@@ -34,14 +33,15 @@ def mkFeed(statuses):
        items = [mkFeedItem(status) for status in statuses],
        lastBuildDate = datetime.datetime.now()   )
 
-   rss.write_xml(open(file, "w"))
+   rss.write_xml(open(settings.FILE, "w"))
 
 
+try:
+    api = twitter.Api(username=settings.USERNAME, password=settings.PASSWORD)
 
-api = twitter.Api(username="", password="") # XXX your user/pass
-
-allstatuses = api.GetFriendsTimeline("") # XXX your username
-#alltext = [(s.user.name, s.text, s.created_at) for s in statuses]
+    allstatuses = api.GetFriendsTimeline(settings.USERNAME)
+except urllib2.HTTPError:
+    sys.exit()
 
 # get one list of URLs, even if there are multiple URLs in some posts
 urlstatuses = []
